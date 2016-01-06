@@ -1,20 +1,13 @@
 var express = require('express');
+var bodyParser = require('body-parser');
 var app =  express();
 var PORT = process.env.PORT || 3000; 
 //process.env.PORT is a heroku specific enviromental port
-var todos = [{
-	id: 1,
-	description: 'Meet mom for lunch',
-	completed: false
-}, {
-	id:2,
-	description: 'Go to market',
-	completed: false
-}, {
-	id:3,
-	description:'Completed Request',
-	completed: true
-}];
+var todos = [ ]
+var todosNextId = 1;
+
+//anytime json request comes in, json will parse it
+app.use(bodyParser.json());
 
 app.get('/', function (req, res) {
 	res.send('Todo API root');
@@ -49,6 +42,19 @@ app.get('/todos/:id', function (req, res) {
 		res.status(404).send();
 	}
 //res.send('Asking for todo with id of ' + req.params.id);
+});
+
+
+//POST Request /todos
+app.post('/todos', function(req, res) {
+	var body = req.body;
+
+	//push body into array
+	//add id field
+	//spit out new todo item
+	body.id = todosNextId++;
+	todos.push(body);
+	res.json(body);
 });
 
 app.listen(PORT, function () {
