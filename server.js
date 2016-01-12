@@ -1,40 +1,29 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var _ = require('underscore'); 
+//this looks weird but its a popular module and most people name it with _
 var app =  express();
 var PORT = process.env.PORT || 3000; 
-//process.env.PORT is a heroku specific enviromental port
 var todos = [ ]
 var todosNextId = 1;
 
-//anytime json request comes in, json will parse it
 app.use(bodyParser.json());
 
+
 app.get('/', function (req, res) {
-	res.send('Todo API root');
+	res.send('Todo API');
 });
 
 //GET request /todos
 //when /todos gets a request, respond with a string json
-app.get('/todos', function (req, res) {
-	//res.send(JSON.stringify(todos)); Normal way to do it
-	res.json(todos) //express, better way
+app.get('/todos', function (req, res) {	
+	res.json(todos); 
 });
 
 //GET /todos/:id
-
 app.get('/todos/:id', function (req, res) {
-	//req.params are always strings, if your expecting a number
-	//make sure you convert it first
 	var todoID = parseInt(req.params.id, 10);
-	var matchedTodo;
-	//iterate over todos aray and find a match
-	//call res.json on todo item if not send 404
-	//res.status(404).send();
-	todos.forEach(function (todo) {
-		if (todoID === todo.id) {
-			matchedTodo = todo;
-		}
-	});
+	var matchedTodo = _.findWhere(todos, {id: todoID});
 
 	if (matchedTodo) {
 		res.json(matchedTodo);
@@ -47,7 +36,22 @@ app.get('/todos/:id', function (req, res) {
 
 //POST Request /todos
 app.post('/todos', function(req, res) {
-	var body = req.body;
+	
+//use underscore.pick to pick des and completed.
+//update val of body.desc to be trimmed value
+	var body = _.pick(req.body,'description', 'completed');
+	
+
+
+	//if on the request body the completed is NOT true or false
+	//or
+	//if the body description is NOT a string
+	//or
+	//if the length value is 0 AFTER trimming left and right aka empty string
+	if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+		return res.status(404).send();
+	}
+	body.description = body.description.trim();
 
 	//push body into array
 	//add id field
